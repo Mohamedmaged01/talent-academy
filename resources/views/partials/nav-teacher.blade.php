@@ -1,0 +1,6 @@
+@include('partials.nav-item', ['route' => 'teacher.dashboard', 'icon' => 'layout-dashboard', 'label' => __('Dashboard')])
+@include('partials.nav-item', ['route' => 'teacher.schedule', 'icon' => 'calendar-days', 'label' => __('My Schedule')])
+@include('partials.nav-item', ['route' => 'teacher.batches.index', 'match' => ['teacher.batches.*', 'teacher.attendance.*'], 'icon' => 'users-round', 'label' => __('My Classes')])
+@include('partials.nav-item', ['route' => 'teacher.assignments.index', 'match' => 'teacher.assignments.*', 'icon' => 'notebook-pen', 'label' => __('Assignments')])
+@include('partials.nav-item', ['route' => 'teacher.exams.index', 'match' => 'teacher.exams.*', 'icon' => 'file-check', 'label' => __('Exams & Grades')])
+@include('partials.nav-item', ['route' => 'teacher.announcements', 'icon' => 'megaphone', 'label' => __('Announcements')])

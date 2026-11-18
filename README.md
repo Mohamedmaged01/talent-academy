@@ -20,6 +20,25 @@ php artisan serve           # http://127.0.0.1:8000
 
 To use MySQL instead (for example XAMPP), set `DB_CONNECTION=mysql` plus `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` in `.env`, then run `php artisan migrate:fresh --seed` again.
 
+## Deploy to a server (Plesk / IIS or Apache)
+
+The compiled CSS and JavaScript are committed in `public/build`, so the server does not need Node.js. **After changing anything in `resources/` (views, CSS or JS), run `npm run build` and commit `public/build` along with your change.** Otherwise the server keeps the old styles, and any new Tailwind classes will have no styling.
+
+On the server:
+
+1. Point the site's document root at the `public/` folder, not the project folder.
+2. Run `composer install --no-dev --optimize-autoloader`.
+3. Copy `.env.example` to `.env` and set `APP_ENV=production`, `APP_DEBUG=false` and `APP_URL=https://your-domain`. Then run `php artisan key:generate`.
+4. Set up the database:
+   - SQLite: create the empty file `database/database.sqlite`.
+   - MySQL: set the `DB_*` values in `.env`.
+
+   Then run `php artisan migrate --force`. Add `--seed` only for a demo site: every seeded account uses the password `password`, including the admin.
+5. Run `php artisan storage:link`, then `php artisan optimize`.
+6. Give the web server user write access to `storage/` and `bootstrap/cache/`. On IIS that is the site's application pool user.
+
+On IIS (Plesk for Windows), `public/web.config` routes every request to Laravel; it needs the IIS URL Rewrite module, which Plesk installs. On Apache, `public/.htaccess` does the same.
+
 ## Demo accounts
 
 Every seeded account uses the password `password`. The login page shows quick-fill buttons when `APP_ENV=local`.

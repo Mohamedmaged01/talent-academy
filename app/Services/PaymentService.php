@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ActivityLog;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Support\Notify;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -51,6 +52,9 @@ class PaymentService
             $locked->recalculate();
 
             ActivityLog::record('payment.recorded', "Payment {$payment->receipt_number} of {$amount} EGP on invoice {$locked->number}", $payment);
+
+            Notify::student($locked->student, 'Payment received: :amount EGP (receipt :receipt)', ['amount' => number_format($amount, 2), 'receipt' => $payment->receipt_number],
+                route('student.payments'), 'wallet', route('parent.children.show', $locked->student_id));
 
             return $payment;
         });

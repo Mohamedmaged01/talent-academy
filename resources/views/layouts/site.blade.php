@@ -26,6 +26,10 @@
         $otherLocale = app()->getLocale() === 'ar' ? 'en' : 'ar';
     @endphp
 
+    @if ($notice = \App\Models\Setting::tr('notice_bar'))
+        <div class="bg-gold px-6 py-2 text-center text-sm font-semibold text-navy" role="note">{{ $notice }}</div>
+    @endif
+
     {{-- Top utility bar --}}
     <div class="hidden border-b border-line bg-white text-xs text-muted md:block">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-2">
@@ -128,6 +132,7 @@
                     <li><a href="{{ route('courses.index') }}" class="hover:text-gold">{{ __('All Programs') }}</a></li>
                     <li><a href="{{ route('admissions.create') }}" class="hover:text-gold">{{ __('Apply Now') }}</a></li>
                     <li><a href="{{ route('certificates.verify') }}" class="hover:text-gold">{{ __('Verify Certificate') }}</a></li>
+                    <li><a href="{{ route('downloads.public') }}" class="hover:text-gold">{{ __('Downloads Center') }}</a></li>
                     <li><a href="{{ route('privacy') }}" class="hover:text-gold">{{ __('Privacy Policy') }}</a></li>
                     <li><a href="{{ route('terms') }}" class="hover:text-gold">{{ __('Terms & Conditions') }}</a></li>
                 </ul>

@@ -10,8 +10,8 @@ use App\Models\Payment;
 use App\Models\Student;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class InvoiceController extends Controller
@@ -21,7 +21,7 @@ class InvoiceController extends Controller
         // Refresh overdue flags so the list reflects today's date.
         Invoice::whereIn('status', ['unpaid'])->where('due_date', '<', now()->toDateString())->update(['status' => 'overdue']);
 
-        $invoices = Invoice::with(['student', 'branch'])
+        $invoices = Invoice::with(['student', 'branch'])->forAdminBranch()
             ->when($request->query('status'), fn ($q, $v) => $q->where('status', $v))
             ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($q) => $q
                 ->where('number', 'like', "%{$term}%")
@@ -77,7 +77,7 @@ class InvoiceController extends Controller
                     'amount' => $installments > 1 ? $amount : $data['amount'],
                     'discount' => $installments > 1 ? 0 : ($data['discount'] ?? 0),
                     'issued_at' => $data['issued_at'],
-                    'due_date' => \Illuminate\Support\Carbon::parse($data['due_date'])->addMonths($i),
+                    'due_date' => Carbon::parse($data['due_date'])->addMonths($i),
                     'status' => 'unpaid',
                     'notes' => $data['notes'] ?? null,
                 ]));

@@ -2,11 +2,11 @@
 
 @php
     $tones = [
-        'emerald' => ['active', 'paid', 'present', 'valid', 'accepted', 'verified', 'completed', 'read', 'published', 'passed'],
-        'sky' => ['upcoming', 'contacted', 'partial', 'late', 'new', 'academic', 'graded', 'eligible'],
-        'amber' => ['pending', 'unpaid', 'excused', 'draft', 'suspended', 'training', 'submitted'],
-        'rose' => ['overdue', 'absent', 'rejected', 'revoked', 'cancelled', 'withdrawn', 'dropped', 'inactive', 'failed', 'missing'],
-        'slate' => ['archived', 'graduated'],
+        'emerald' => ['active', 'paid', 'present', 'valid', 'accepted', 'verified', 'completed', 'read', 'published', 'passed', 'resolved', 'approved', 'success', 'issued'],
+        'sky' => ['upcoming', 'contacted', 'partial', 'late', 'new', 'academic', 'graded', 'eligible', 'in_progress', 'open', 'scheduled'],
+        'amber' => ['pending', 'unpaid', 'excused', 'draft', 'suspended', 'training', 'submitted', 'high'],
+        'rose' => ['overdue', 'absent', 'rejected', 'revoked', 'cancelled', 'withdrawn', 'dropped', 'inactive', 'failed', 'missing', 'expired', 'missed', 'urgent', 'not_found'],
+        'slate' => ['archived', 'graduated', 'closed', 'normal'],
     ];
     $tone = collect($tones)->search(fn ($values) => in_array($value, $values, true)) ?: 'slate';
     $classes = [
@@ -18,4 +18,11 @@
     ][$tone];
 @endphp
 
-<span {{ $attributes->merge(['class' => "badge ring-1 ring-inset {$classes}"]) }}>{{ __(\Illuminate\Support\Str::headline($value)) }}</span>
+@php
+    // A "status.x" translation wins over the generic headline, for words that read differently as a state ("Open" vs. the verb).
+    $label = __('status.'.$value);
+    if ($label === 'status.'.$value) {
+        $label = __(\Illuminate\Support\Str::headline($value));
+    }
+@endphp
+<span {{ $attributes->merge(['class' => "badge ring-1 ring-inset {$classes}"]) }}>{{ $label }}</span>

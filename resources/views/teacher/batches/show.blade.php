@@ -46,6 +46,23 @@
                 </ul>
             </div>
 
+            <form method="POST" action="{{ route('teacher.batches.meeting', $batch) }}" class="card">
+                @csrf @method('PATCH')
+                <div class="card-header">
+                    <h2 class="card-title">{{ __('Live online sessions') }}</h2>
+                    @if ($batch->meeting_url)
+                        <a href="{{ $batch->meeting_url }}" target="_blank" rel="noopener" class="btn btn-gold btn-sm"><x-lucide-video class="size-4" />{{ __('Start') }}</a>
+                    @endif
+                </div>
+                <div class="grid gap-3 p-5">
+                    <x-input name="meeting_url" :label="__('Meeting link (Zoom, Meet, Teams)')" type="url" :value="$batch->meeting_url" dir="ltr" :hint="__('Students see a Join button 15 minutes before each scheduled session.')" />
+                    <div class="flex flex-wrap gap-2">
+                        <button class="btn btn-outline btn-sm"><x-lucide-save class="size-4" />{{ __('Save link') }}</button>
+                        <a href="{{ route('teacher.lectures.index', ['batch' => $batch->id]) }}" class="btn btn-ghost btn-sm"><x-lucide-clapperboard class="size-4" />{{ __('Recorded lectures') }} ({{ $batch->lectures()->count() }})</a>
+                    </div>
+                </div>
+            </form>
+
             <div class="card" x-data="{ type: @js(old('type', 'file')) }">
                 <div class="card-header"><h2 class="card-title">{{ __('Course materials') }}</h2></div>
                 <ul class="divide-y divide-line">

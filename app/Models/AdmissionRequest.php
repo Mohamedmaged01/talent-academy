@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdmissionRequest extends Model
 {
+    use Concerns\ScopedToBranch;
+
     public const STATUSES = ['pending', 'contacted', 'accepted', 'rejected'];
 
     protected $fillable = [

@@ -9,6 +9,9 @@
         <div>
             <h2 class="section-title">{{ __('Two paths, one academy') }}</h2>
             <div class="prose-body mt-5 text-ink">
+                @if ($intro = \App\Models\Setting::tr('about_intro'))
+                    <p class="whitespace-pre-line">{{ $intro }}</p>
+                @endif
                 <p>{{ __('Talent Academy for Educational Services runs two clearly separated tracks under a single identity: academic education for school students (American Diploma, high school and foundation classes) and professional training for young people and graduates (artificial intelligence, cyber security, software development, languages and administration).') }}</p>
                 <p>{{ __('Every learner has one unified profile, so a student can join an academic class and a training course at the same time with one record, one account and one financial statement.') }}</p>
                 <p>{{ __('Certificates are issued only when attendance reaches 80% and the average assessment score reaches 70%, and every certificate can be verified online by its serial number.') }}</p>
@@ -19,7 +22,7 @@
             </div>
         </div>
         <div class="relative">
-            <img src="{{ asset('images/students-lab.jpg') }}" alt="" class="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl">
+            <img src="{{ setting_image('about_image', 'images/students-lab.jpg') }}" alt="" class="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl">
             <div class="absolute -bottom-6 start-6 flex items-center gap-3 rounded-2xl bg-white p-4 shadow-xl">
                 <img src="{{ asset('images/director-portrait.png') }}" alt="" class="size-14 rounded-full bg-brand-50 object-cover object-top">
                 <div>

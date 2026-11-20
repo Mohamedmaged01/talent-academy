@@ -21,7 +21,7 @@ class BatchController extends Controller
 {
     public function index(Request $request): View
     {
-        $batches = Batch::with(['course', 'teacher', 'branch', 'schedules'])
+        $batches = Batch::with(['course', 'teacher', 'branch', 'schedules'])->forAdminBranch()
             ->withCount(['enrollments' => fn ($q) => $q->where('status', 'active')])
             ->when($request->query('status'), fn ($q, $v) => $q->where('status', $v))
             ->when($request->query('branch'), fn ($q, $v) => $q->where('branch_id', $v))
@@ -163,6 +163,7 @@ class BatchController extends Controller
             'branch_id' => ['required', 'exists:branches,id'],
             'teacher_id' => ['nullable', Rule::exists('users', 'id')->where('role', 'teacher')],
             'room' => ['nullable', 'string', 'max:120'],
+            'meeting_url' => ['nullable', 'url:http,https', 'max:500'],
             'capacity' => ['required', 'integer', 'min:1', 'max:500'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],

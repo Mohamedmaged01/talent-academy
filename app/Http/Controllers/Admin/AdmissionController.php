@@ -18,7 +18,7 @@ class AdmissionController extends Controller
 {
     public function index(Request $request): View
     {
-        $admissions = AdmissionRequest::with(['course', 'branch'])
+        $admissions = AdmissionRequest::with(['course', 'branch'])->forAdminBranch()
             ->when($request->query('status'), fn ($q, $v) => $q->where('status', $v))
             ->when($request->query('pathway'), fn ($q, $v) => $q->where('pathway', $v))
             ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($q) => $q

@@ -31,11 +31,15 @@
 
             {{-- Headline --}}
             <div class="order-1 pb-6 text-white lg:order-2 lg:col-span-5 lg:pb-16">
-                <h1 class="text-4xl font-extrabold leading-tight md:text-6xl">{{ __('Talent Academy') }}</h1>
-                <p class="mt-3 text-2xl font-extrabold text-gold md:text-4xl">{{ __('Your Journey to a Brighter Future') }}</p>
+                <h1 class="text-4xl font-extrabold leading-tight md:text-6xl">{{ \App\Models\Setting::tr('hero_title') ?: __('Talent Academy') }}</h1>
+                <p class="mt-3 text-2xl font-extrabold text-gold md:text-4xl">{{ \App\Models\Setting::tr('hero_tagline') ?: __('Your Journey to a Brighter Future') }}</p>
                 <p class="mt-5 text-lg leading-8 text-slate-100">
-                    {{ __('Accredited Academic Education + Professional Training Programs') }}<br>
-                    <span class="text-slate-300">{{ __('Under the supervision of expert faculty') }}</span>
+                    @if ($heroText = \App\Models\Setting::tr('hero_text'))
+                        {{ $heroText }}
+                    @else
+                        {{ __('Accredited Academic Education + Professional Training Programs') }}<br>
+                        <span class="text-slate-300">{{ __('Under the supervision of expert faculty') }}</span>
+                    @endif
                 </p>
                 <div class="mt-8 flex flex-wrap gap-3">
                     <a href="{{ route('admissions.create') }}" class="btn btn-gold px-6 py-3 text-base">
@@ -51,7 +55,7 @@
             <div class="relative order-2 pb-10 lg:order-3 lg:col-span-4 lg:self-center lg:pb-16">
                 <figure class="relative mx-auto max-w-sm">
                     <div class="absolute -inset-3 rotate-3 rounded-[2rem] bg-gold/80"></div>
-                    <img src="{{ asset('images/director-portrait.png') }}" alt="{{ \App\Models\Setting::tr('director_name') }}"
+                    <img src="{{ \App\Models\Setting::image('hero_image', 'images/director-portrait.png') }}" alt="{{ \App\Models\Setting::tr('director_name') }}"
                          class="relative aspect-[238/212] w-full rounded-[1.75rem] object-cover shadow-2xl ring-4 ring-white/30">
                     <figcaption class="absolute -bottom-6 start-6 flex items-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-xl">
                         <span class="grid size-10 place-items-center rounded-full bg-brand text-white"><x-lucide-user-round class="size-5" /></span>
@@ -99,7 +103,7 @@
                     ['training', 'monitor', __('Training Programs'), __('Specialized courses in computer science, AI, languages, development and administration'), $trainingCourses, 'images/pathway_training.jpg', __('Browse Courses')],
                 ] as [$key, $icon, $title, $desc, $list, $image, $cta])
                     <article class="card grid overflow-hidden md:grid-cols-5">
-                        <img src="{{ asset($image) }}" alt="" class="h-56 w-full object-cover md:col-span-2 md:h-full">
+                        <img src="{{ setting_image('pathway_'.$key.'_image', $image) }}" alt="" class="h-56 w-full object-cover md:col-span-2 md:h-full">
                         <div class="flex flex-col p-6 md:col-span-3">
                             <div class="flex items-center gap-3">
                                 <span class="grid size-11 place-items-center rounded-xl bg-brand text-white"><x-dynamic-component :component="'lucide-'.$icon" class="size-5" /></span>

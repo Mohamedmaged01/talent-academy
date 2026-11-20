@@ -54,6 +54,35 @@
                     @endforelse
                 </ul>
             </div>
+
+            @php($fileNotes = $student->fileNotes()->with(['author', 'batch'])->latest()->get())
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">{{ __('Notes on the student file') }}</h2><span class="text-sm text-muted">{{ $fileNotes->count() }}</span></div>
+                <ul class="divide-y divide-line">
+                    @forelse ($fileNotes as $note)
+                        <li class="flex items-start gap-2 px-5 py-3 text-sm">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs text-muted"><span class="font-semibold text-navy">{{ $note->author?->name }}</span> · {{ $note->created_at->translatedFormat('j M Y') }}@if ($note->batch) · {{ $note->batch->name }}@endif
+                                    @if ($note->visible_to_parent)<span class="badge bg-emerald-50 text-emerald-700">{{ __('Shared with parents') }}</span>@endif</p>
+                                <p class="mt-1 whitespace-pre-line" dir="auto">{{ $note->body }}</p>
+                            </div>
+                            @if (auth()->user()->canAdmin('students', 'manage'))<x-confirm-delete :action="route('admin.students.notes.destroy', $note)" />@endif
+                        </li>
+                    @empty
+                        <li class="px-5 py-4 text-sm text-muted">{{ __('No notes yet.') }}</li>
+                    @endforelse
+                </ul>
+                @if (auth()->user()->canAdmin('students', 'manage'))
+                    <form method="POST" action="{{ route('admin.students.notes.store', $student) }}" class="grid gap-2 border-t border-line p-4">
+                        @csrf
+                        <textarea name="body" rows="2" required class="input" placeholder="{{ __('Add a note…') }}" aria-label="{{ __('Note') }}" dir="auto"></textarea>
+                        <div class="flex items-center justify-between gap-2">
+                            <label class="flex items-center gap-2 text-xs"><input type="checkbox" name="visible_to_parent" value="1"> {{ __('Share with the parents') }}</label>
+                            <button class="btn btn-outline btn-sm"><x-lucide-save class="size-4" />{{ __('Save note') }}</button>
+                        </div>
+                    </form>
+                @endif
+            </div>
         </div>
 
         <div class="space-y-6 xl:col-span-2">

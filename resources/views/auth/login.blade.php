@@ -13,7 +13,7 @@
 <body class="bg-canvas">
     <div class="grid min-h-screen lg:grid-cols-2">
         <div class="relative hidden overflow-hidden bg-brand-dark lg:block">
-            <img src="{{ asset('images/login-hero.jpg') }}" alt="" class="absolute inset-0 size-full object-cover opacity-40">
+            <img src="{{ setting_image('login_image', 'images/login-hero.jpg') }}" alt="" class="absolute inset-0 size-full object-cover opacity-40">
             <div class="absolute inset-0 bg-gradient-to-t from-navy via-brand-dark/70 to-brand/40"></div>
             <div class="relative flex h-full flex-col justify-between p-12 text-white">
                 <a href="{{ route('home') }}" class="flex items-center gap-3">
@@ -67,7 +67,7 @@
                         <div class="mt-8 rounded-2xl border border-dashed border-brand/40 bg-brand-50/60 p-4" x-data>
                             <p class="text-xs font-bold text-brand">{{ __('Demo accounts (local only) — password: password') }}</p>
                             <div class="mt-3 grid grid-cols-2 gap-2">
-                                @foreach (['admin@talent.test' => __('Administrator'), 'teacher@talent.test' => __('Teacher'), 'student@talent.test' => __('Student'), 'parent@talent.test' => __('Parent')] as $email => $role)
+                                @foreach (['admin@talent.test' => __('Administrator'), 'teacher@talent.test' => __('Teacher'), 'student@talent.test' => __('Student'), 'parent@talent.test' => __('Parent'), 'accountant@talent.test' => __('Accountant'), 'maghagha@talent.test' => __('Branch manager')] as $email => $role)
                                     <button type="button" class="btn btn-outline btn-sm justify-start"
                                             @click="document.getElementById('email').value = @js($email); document.getElementById('password').value = 'password'">
                                         <x-lucide-user-round class="size-3.5" />{{ $role }}

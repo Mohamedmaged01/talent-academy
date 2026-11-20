@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdmissionRequest;
 use App\Models\Branch;
 use App\Models\Course;
+use App\Support\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -42,6 +43,9 @@ class AdmissionController extends Controller
             'reference' => AdmissionRequest::newReference(),
             'status' => 'pending',
         ]);
+
+        Notify::admins('New online application :reference from :name', ['reference' => $admission->reference, 'name' => $admission->full_name],
+            route('admin.admissions.show', $admission), 'user-plus', 'admissions');
 
         return redirect()->route('admissions.thanks', $admission->reference);
     }

@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Batch;
 use App\Models\Certificate;
 use App\Models\Student;
+use App\Support\Notify;
 use Illuminate\Support\Collection;
 
 class CertificateService
@@ -55,6 +56,9 @@ class CertificateService
         ]);
 
         ActivityLog::record('certificate.issued', "Certificate {$certificate->serial} issued to {$student->full_name}", $certificate);
+
+        Notify::student($student, 'Congratulations! Your certificate ":title" has been issued', ['title' => $titleAr],
+            route('student.certificates'), 'award', route('parent.children.show', $student));
 
         return $certificate;
     }

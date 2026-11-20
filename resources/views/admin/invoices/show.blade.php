@@ -4,6 +4,17 @@
 
 @section('content')
     <x-page-header :title="__('Invoice').' '.$invoice->number" :subtitle="$invoice->student->full_name" :back="route('admin.invoices.index')">
+        @if ($invoice->balance() > 0 && $invoice->status !== 'cancelled')
+            @php
+                $reminder = __('Hello :name, this is a friendly reminder from Talent Academy that :amount is due on invoice :number (due :date). Thank you.', [
+                    'name' => $invoice->student->full_name, 'amount' => money($invoice->balance()), 'number' => $invoice->number, 'date' => $invoice->due_date->format('Y-m-d'),
+                ]);
+                $phone = $invoice->student->phone ?: $invoice->student->guardians->first()?->phone;
+            @endphp
+            @if ($wa = whatsapp_link($phone, $reminder))
+                <a href="{{ $wa }}" target="_blank" rel="noopener" class="btn btn-outline"><x-lucide-message-circle class="size-4 text-emerald-600" />{{ __('WhatsApp reminder') }}</a>
+            @endif
+        @endif
         @if ($invoice->status !== 'cancelled' && $invoice->payments->isEmpty())
             <form method="POST" action="{{ route('admin.invoices.cancel', $invoice) }}" onsubmit="return confirm(@js(__('Cancel this invoice?')))">
                 @csrf

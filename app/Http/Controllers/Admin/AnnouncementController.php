@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Announcement;
 use App\Models\Batch;
+use App\Models\User;
+use App\Support\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -36,6 +38,20 @@ class AnnouncementController extends Controller
         ]);
 
         ActivityLog::record('announcement.created', "Announcement \"{$announcement->title}\" published to {$announcement->audience}", $announcement);
+
+        // Everyone who can see it gets a notification in their own portal.
+        $roles = ['all' => ['teacher', 'student', 'parent'], 'students' => ['student'], 'teachers' => ['teacher'], 'parents' => ['parent']][$announcement->audience] ?? [];
+        $routes = ['teacher' => 'teacher.announcements', 'student' => 'student.announcements', 'parent' => 'parent.announcements'];
+        foreach ($roles as $role) {
+            Notify::users(User::where('role', $role)->where('is_active', true)->get(), 'New announcement: :title', ['title' => $announcement->title], route($routes[$role]), 'megaphone');
+        }
+
+        if ($announcement->audience === 'batch' && $announcement->batch) {
+            foreach ($announcement->batch->activeStudents()->with(['user', 'guardians'])->get() as $student) {
+                Notify::student($student, 'New announcement: :title', ['title' => $announcement->title], route('student.announcements'), 'megaphone', route('parent.announcements'));
+            }
+            Notify::users($announcement->batch->teacher, 'New announcement: :title', ['title' => $announcement->title], route('teacher.announcements'), 'megaphone');
+        }
 
         return back()->with('success', __('Announcement published.'));
     }

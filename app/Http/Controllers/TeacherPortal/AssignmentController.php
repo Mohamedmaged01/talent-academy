@@ -5,6 +5,7 @@ namespace App\Http\Controllers\TeacherPortal;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\Batch;
+use App\Support\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -50,6 +51,11 @@ class AssignmentController extends TeacherController
         unset($data['attachment']);
         $assignment = Assignment::create($data + ['teacher_id' => auth()->id()]);
 
+        foreach ($assignment->batch->activeStudents()->with('user')->get() as $student) {
+            Notify::student($student, 'New assignment ":title" due :date', ['title' => $assignment->title, 'date' => $assignment->due_at->format('Y-m-d H:i')],
+                route('student.assignments.show', $assignment), 'notebook-pen');
+        }
+
         return redirect()->route('teacher.assignments.show', $assignment)->with('success', __('Assignment published.'));
     }
 
@@ -86,6 +92,10 @@ class AssignmentController extends TeacherController
         ]);
 
         $submission->update($data + ['graded_at' => now()]);
+
+        Notify::student($submission->student, 'Your work on ":title" was graded: :score / :max', [
+            'title' => $assignment->title, 'score' => (float) $data['score'], 'max' => $assignment->max_score,
+        ], route('student.assignments.show', $assignment), 'circle-check');
 
         return back()->with('success', __('Grade saved.'));
     }

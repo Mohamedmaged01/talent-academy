@@ -3,7 +3,11 @@
 @section('title', __('Announcements'))
 
 @section('content')
-    <x-page-header :title="__('Announcements')" :subtitle="__('Messages shown inside the student, parent and teacher portals.')" />
+    <x-page-header :title="__('Announcements')" :subtitle="__('Messages shown inside the student, parent and teacher portals.')">
+        @if (auth()->user()->canAdmin('communication', 'manage'))
+            <a href="{{ route('admin.broadcast.create') }}" class="btn btn-outline"><x-lucide-send class="size-4 rtl:-scale-x-100" />{{ __('Message a group privately') }}</a>
+        @endif
+    </x-page-header>
 
     <div class="grid gap-6 xl:grid-cols-3">
         <form method="POST" action="{{ route('admin.announcements.store') }}" class="card h-fit" x-data="{ audience: @js(old('audience', 'all')) }">

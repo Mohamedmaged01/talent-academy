@@ -7,15 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Batch extends Model
 {
-    use HasFactory;
+    use Concerns\ScopedToBranch, HasFactory;
 
     public const STATUSES = ['upcoming', 'active', 'completed', 'cancelled'];
 
     protected $fillable = [
-        'branch_id', 'course_id', 'teacher_id', 'code', 'name', 'room',
+        'branch_id', 'course_id', 'teacher_id', 'code', 'name', 'room', 'meeting_url',
         'capacity', 'start_date', 'end_date', 'status',
     ];
 
@@ -87,6 +88,54 @@ class Batch extends Model
     public function announcements(): HasMany
     {
         return $this->hasMany(Announcement::class);
+    }
+
+    public function lectures(): HasMany
+    {
+        return $this->hasMany(Lecture::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function nominations(): HasMany
+    {
+        return $this->hasMany(CertificateNomination::class);
+    }
+
+    /**
+     * The next (or current) session of this class, from its weekly schedule.
+     *
+     * @return array{starts: Carbon, ends: Carbon}|null
+     */
+    public function nextSession(): ?array
+    {
+        $now = now();
+        $best = null;
+
+        foreach ($this->schedules as $slot) {
+            for ($offset = 0; $offset <= 7; $offset++) {
+                $day = $now->copy()->startOfDay()->addDays($offset);
+
+                if ($day->dayOfWeek !== (int) $slot->day_of_week) {
+                    continue;
+                }
+
+                $starts = $day->copy()->setTimeFromTimeString($slot->starts_at);
+                $ends = $day->copy()->setTimeFromTimeString($slot->ends_at);
+
+                if ($ends->gt($now) && (! $best || $starts->lt($best['starts']))) {
+                    $best = ['starts' => $starts, 'ends' => $ends];
+                }
+            }
+        }
+
+        return $best;
+    }
+
+    /** A live session can be joined from 15 minutes before it starts until it ends. */
+    public function isLiveNow(): bool
+    {
+        $session = $this->nextSession();
+
+        return $this->meeting_url && $session && now()->between($session['starts']->copy()->subMinutes(15), $session['ends']);
     }
 
     public function isFull(): bool

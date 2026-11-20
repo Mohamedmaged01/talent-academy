@@ -63,6 +63,45 @@
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm text-muted">{{ now()->translatedFormat('l، j F Y') }}</p>
                     </div>
+                    @php
+                        $unreadCount = $user->unreadNotifications()->count();
+                        $latestNotifications = $user->notifications()->take(6)->get();
+                        $unreadThreads = $user->unreadThreadsCount();
+                    @endphp
+                    <a href="{{ route('messages.index') }}" class="btn btn-ghost btn-sm relative" title="{{ __('Messages') }}" aria-label="{{ __('Messages') }}">
+                        <x-lucide-mail class="size-5" />
+                        @if ($unreadThreads)<span class="absolute -top-0.5 -end-0.5 grid min-w-4 place-items-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">{{ $unreadThreads }}</span>@endif
+                    </a>
+                    <div class="relative" x-data="{ open: false }" @keydown.escape="open = false" @click.outside="open = false">
+                        <button type="button" class="btn btn-ghost btn-sm relative" @click="open = ! open" :aria-expanded="open" aria-label="{{ __('Notifications') }}">
+                            <x-lucide-bell class="size-5" />
+                            @if ($unreadCount)<span class="absolute -top-0.5 -end-0.5 grid min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>@endif
+                        </button>
+                        <div x-show="open" x-transition.origin.top x-cloak class="absolute end-0 z-40 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-line bg-white shadow-xl">
+                            <div class="flex items-center justify-between border-b border-line px-4 py-3">
+                                <p class="font-bold text-navy">{{ __('Notifications') }}</p>
+                                @if ($unreadCount)
+                                    <form method="POST" action="{{ route('notifications.read-all') }}">@csrf<button class="text-xs font-semibold text-brand hover:underline">{{ __('Mark all as read') }}</button></form>
+                                @endif
+                            </div>
+                            <ul class="max-h-96 divide-y divide-line overflow-y-auto">
+                                @forelse ($latestNotifications as $notification)
+                                    <li>
+                                        <a href="{{ route('notifications.open', $notification->id) }}" @class(['flex gap-3 px-4 py-3 text-sm hover:bg-canvas', 'bg-brand-50/50' => ! $notification->read_at])>
+                                            <x-dynamic-component :component="'lucide-'.($notification->data['icon'] ?? 'bell')" class="mt-0.5 size-4 shrink-0 text-brand" />
+                                            <span class="min-w-0">
+                                                <span class="block leading-6 text-ink">{{ \App\Notifications\PortalNotification::text($notification->data) }}</span>
+                                                <span class="text-xs text-muted">{{ $notification->created_at->diffForHumans() }}</span>
+                                            </span>
+                                        </a>
+                                    </li>
+                                @empty
+                                    <li class="px-4 py-8 text-center text-sm text-muted">{{ __('You are all caught up.') }}</li>
+                                @endforelse
+                            </ul>
+                            <a href="{{ route('notifications.index') }}" class="block border-t border-line px-4 py-2.5 text-center text-sm font-semibold text-brand hover:bg-canvas">{{ __('View all') }}</a>
+                        </div>
+                    </div>
                     <a href="{{ route('locale.switch', $otherLocale) }}" class="btn btn-ghost btn-sm" title="{{ __('Language') }}">
                         <x-lucide-languages class="size-4" /><span class="hidden sm:inline">{{ $otherLocale === 'en' ? 'English' : 'العربية' }}</span>
                     </a>

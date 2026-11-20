@@ -66,6 +66,24 @@
         </div>
 
         <div class="space-y-6">
+            @php($sharedNotes = $student->fileNotes()->where('visible_to_parent', true)->with('author')->latest()->take(10)->get())
+            @if ($sharedNotes->isNotEmpty())
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">{{ __('Notes from teachers') }}</h2></div>
+                    <ul class="divide-y divide-line">
+                        @foreach ($sharedNotes as $note)
+                            <li class="px-5 py-3 text-sm">
+                                <p class="text-xs text-muted"><span class="font-semibold text-navy">{{ $note->author?->name }}</span> · {{ $note->created_at->translatedFormat('j M Y') }}</p>
+                                <p class="mt-1 leading-7 whitespace-pre-line" dir="auto">{{ $note->body }}</p>
+                                @if ($note->author && $note->author->role === 'teacher')
+                                    <a href="{{ route('messages.create', ['to' => $note->author_id]) }}" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"><x-lucide-mail class="size-3.5" />{{ __('Reply to the teacher') }}</a>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="card">
                 <div class="card-header"><h2 class="card-title">{{ __('Fees') }}</h2></div>
                 <ul class="divide-y divide-line">

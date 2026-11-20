@@ -5,6 +5,8 @@
 @section('content')
     <x-page-header :title="__('Certificates')" :subtitle="__('Issued certificates. Each one can be verified publicly by its serial number.')">
         <a href="{{ route('certificates.verify') }}" target="_blank" class="btn btn-outline"><x-lucide-shield-check class="size-4" />{{ __('Public verification page') }}</a>
+        @php($pendingNominations = \App\Models\CertificateNomination::where('status', 'pending')->count())
+        <a href="{{ route('admin.nominations.index') }}" class="btn btn-outline"><x-lucide-inbox class="size-4" />{{ __('Teacher nominations') }}@if ($pendingNominations)<span class="rounded-full bg-gold px-2 text-[11px] font-bold text-navy">{{ $pendingNominations }}</span>@endif</a>
         <a href="{{ route('admin.certificates.create') }}" class="btn btn-primary"><x-lucide-award class="size-4" />{{ __('Issue Certificate') }}</a>
     </x-page-header>
 

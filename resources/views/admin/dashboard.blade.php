@@ -35,14 +35,21 @@
         ];
     @endphp
 
+    @php
+        $me = auth()->user();
+        $canFinance = $me->canAdmin('finance');
+    @endphp
+
     <x-page-header :title="__('Admin Dashboard')" :subtitle="__('Welcome back, :name. Here is what is happening across the academy today.', ['name' => auth()->user()->name])" />
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <x-stat :label="__('Active Students')" :value="number_format($stats['students'])" icon="graduation-cap" :hint="__('+:count this month', ['count' => $stats['students_new']])" :href="route('admin.students.index')" />
         <x-stat :label="__('Teachers & Trainers')" :value="$stats['teachers']" icon="presentation" tone="emerald" :hint="__(':count active classes', ['count' => $stats['batches']])" :href="route('admin.teachers.index')" />
         <x-stat :label="__('New Applications')" :value="$stats['admissions_pending']" icon="user-plus" tone="violet" :hint="__('Waiting for review')" :href="route('admin.admissions.index', ['status' => 'pending'])" />
-        <x-stat :label="__('Collected This Month')" :value="money($stats['collected_month'], false)" icon="wallet" tone="amber" :href="route('admin.finance')" />
-        <x-stat :label="__('Outstanding Fees')" :value="money($stats['outstanding'], false)" icon="circle-alert" tone="rose" :href="route('admin.invoices.index', ['status' => 'overdue'])" />
+        @if ($canFinance)
+            <x-stat :label="__('Collected This Month')" :value="money($stats['collected_month'], false)" icon="wallet" tone="amber" :href="route('admin.finance')" />
+            <x-stat :label="__('Outstanding Fees')" :value="money($stats['outstanding'], false)" icon="circle-alert" tone="rose" :href="route('admin.invoices.index', ['status' => 'overdue'])" />
+        @endif
     </div>
 
     <div class="mt-6 grid gap-6 xl:grid-cols-12">
@@ -51,14 +58,14 @@
             <div class="card">
                 <div class="card-header"><h2 class="card-title">{{ __('Quick Actions') }}</h2></div>
                 <div class="grid grid-cols-3 gap-3 p-5 sm:grid-cols-6">
-                    @foreach ([
-                        ['user-plus', __('Add Student'), route('admin.students.create'), 'text-brand bg-brand-50'],
-                        ['presentation', __('Add Teacher'), route('admin.teachers.create'), 'text-emerald-600 bg-emerald-50'],
-                        ['users-round', __('Create Class'), route('admin.batches.create'), 'text-violet-600 bg-violet-50'],
-                        ['file-plus', __('New Invoice'), route('admin.invoices.create'), 'text-amber-600 bg-amber-50'],
-                        ['award', __('Issue Certificate'), route('admin.certificates.create'), 'text-sky-600 bg-sky-50'],
-                        ['megaphone', __('Announce'), route('admin.announcements.index'), 'text-rose-600 bg-rose-50'],
-                    ] as [$icon, $label, $href, $tone])
+                    @foreach (array_filter([
+                        $me->canAdmin('students', 'manage') ? ['user-plus', __('Add Student'), route('admin.students.create'), 'text-brand bg-brand-50'] : null,
+                        $me->canAdmin('teachers', 'manage') ? ['presentation', __('Add Teacher'), route('admin.teachers.create'), 'text-emerald-600 bg-emerald-50'] : null,
+                        $me->canAdmin('academics', 'manage') ? ['users-round', __('Create Class'), route('admin.batches.create'), 'text-violet-600 bg-violet-50'] : null,
+                        $me->canAdmin('finance', 'manage') ? ['file-plus', __('New Invoice'), route('admin.invoices.create'), 'text-amber-600 bg-amber-50'] : null,
+                        $me->canAdmin('certificates', 'manage') ? ['award', __('Issue Certificate'), route('admin.certificates.create'), 'text-sky-600 bg-sky-50'] : null,
+                        $me->canAdmin('communication', 'manage') ? ['megaphone', __('Announce'), route('admin.announcements.index'), 'text-rose-600 bg-rose-50'] : null,
+                    ]) as [$icon, $label, $href, $tone])
                         <a href="{{ $href }}" class="flex flex-col items-center gap-2 rounded-xl border border-line p-3 text-center transition hover:border-brand hover:shadow-sm">
                             <span class="grid size-10 place-items-center rounded-xl {{ $tone }}"><x-dynamic-component :component="'lucide-'.$icon" class="size-5" /></span>
                             <span class="text-xs font-semibold text-navy">{{ $label }}</span>
@@ -68,17 +75,19 @@
             </div>
 
             <div class="grid gap-6 lg:grid-cols-5">
-                <div class="card lg:col-span-3">
-                    <div class="card-header">
-                        <h2 class="card-title">{{ __('Revenue vs Expenses') }}</h2>
-                        <a href="{{ route('admin.finance') }}" class="text-xs font-semibold text-brand">{{ __('Details') }}</a>
+                @if ($canFinance)
+                    <div class="card lg:col-span-3">
+                        <div class="card-header">
+                            <h2 class="card-title">{{ __('Revenue vs Expenses') }}</h2>
+                            <a href="{{ route('admin.finance') }}" class="text-xs font-semibold text-brand">{{ __('Details') }}</a>
+                        </div>
+                        <div class="h-72 p-5">
+                            <canvas aria-label="{{ __('Revenue vs Expenses') }}" role="img" data-chart="{{ json_encode($revenueChart) }}"></canvas>
+                        </div>
                     </div>
-                    <div class="h-72 p-5">
-                        <canvas aria-label="{{ __('Revenue vs Expenses') }}" role="img" data-chart="{{ json_encode($revenueChart) }}"></canvas>
-                    </div>
-                </div>
+                @endif
 
-                <div class="card lg:col-span-2">
+                <div @class(['card', 'lg:col-span-2' => $canFinance, 'lg:col-span-5' => ! $canFinance])>
                     <div class="card-header">
                         <h2 class="card-title">{{ __('Attendance (30 days)') }}</h2>
                         <a href="{{ route('admin.attendance') }}" class="text-xs font-semibold text-brand">{{ __('Report') }}</a>
@@ -161,6 +170,7 @@
                     </ul>
                 </div>
 
+                @if ($canFinance)
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">{{ __('Overdue Fees') }}</h2>
@@ -183,6 +193,7 @@
                         @endforelse
                     </ul>
                 </div>
+                @endif
             </div>
         </div>
 

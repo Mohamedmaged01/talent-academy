@@ -26,7 +26,8 @@
                           :options="$courses->mapWithKeys(fn ($c) => [$c->id => ($c->pathway === 'academic' ? '🎓 ' : '💻 ').$c->tr('title')])" :placeholder="__('Select…')" />
                 <x-select name="teacher_id" :label="__('Instructor')" :value="$batch->teacher_id" :options="$teachers->pluck('name', 'id')" :placeholder="__('Not assigned yet')" />
                 <x-select name="branch_id" :label="__('Branch')" :value="$batch->branch_id" required :options="$branches->mapWithKeys(fn ($b) => [$b->id => $b->tr('name')])" />
-                <x-input name="room" :label="__('Room / lab / online link')" :value="$batch->room" />
+                <x-input name="room" :label="__('Room / lab')" :value="$batch->room" />
+                <x-input name="meeting_url" :label="__('Online meeting link (Zoom, Meet, Teams)')" type="url" :value="$batch->meeting_url" dir="ltr" />
                 <x-input name="capacity" :label="__('Capacity')" type="number" min="1" :value="$batch->capacity" required />
                 <x-input name="start_date" :label="__('Start date')" type="date" :value="$batch->start_date?->toDateString()" />
                 <x-input name="end_date" :label="__('End date')" type="date" :value="$batch->end_date?->toDateString()" />

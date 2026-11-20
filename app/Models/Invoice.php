@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Invoice extends Model
 {
-    use HasFactory;
+    use Concerns\ScopedToBranch, HasFactory;
 
     public const STATUSES = ['unpaid', 'partial', 'paid', 'overdue', 'cancelled'];
 
@@ -90,5 +91,10 @@ class Invoice extends Model
     public function scopeOpen($query)
     {
         return $query->whereIn('status', ['unpaid', 'partial', 'overdue']);
+    }
+
+    public function journalEntries(): MorphMany
+    {
+        return $this->morphMany(JournalEntry::class, 'source');
     }
 }

@@ -9,7 +9,6 @@ use App\Models\Assignment;
 use App\Models\AttendanceRecord;
 use App\Models\Batch;
 use App\Models\Branch;
-use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Exam;
 use App\Models\ExamResult;
@@ -33,6 +32,8 @@ use Illuminate\Support\Collection;
  */
 class DatabaseSeeder extends Seeder
 {
+    use SeedsPlatformModules;
+
     private User $admin;
 
     public function run(): void
@@ -69,6 +70,7 @@ class DatabaseSeeder extends Seeder
         $this->announcements($batches);
         $this->admissions($courses, $branches);
         $this->inquiries();
+        $this->seedPlatformModules($branches, $teachers, $courses, $batches, $students);
         $this->activity();
     }
 

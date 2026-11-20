@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Student extends Model
 {
-    use HasFactory;
+    use Concerns\ScopedToBranch, HasFactory;
 
     public const STATUSES = ['active', 'suspended', 'graduated', 'withdrawn'];
 
@@ -99,6 +99,17 @@ class Student extends Model
     public function certificates(): HasMany
     {
         return $this->hasMany(Certificate::class);
+    }
+
+    /** Teachers' and administrators' notes on the file (the `notes` column is the admin's free-text remark). */
+    public function fileNotes(): HasMany
+    {
+        return $this->hasMany(StudentNote::class);
+    }
+
+    public function examAttempts(): HasMany
+    {
+        return $this->hasMany(ExamAttempt::class);
     }
 
     /** Percentage of sessions attended (present or late count as attended). */

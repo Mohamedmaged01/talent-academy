@@ -4,6 +4,7 @@ namespace App\Http\Controllers\StudentPortal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Assignment;
+use App\Support\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -61,6 +62,9 @@ class AssignmentController extends Controller
             ['assignment_id' => $assignment->id],
             ['body' => $data['body'] ?? null, 'attachment_path' => $path, 'submitted_at' => now()],
         );
+
+        Notify::users($assignment->batch->teacher, ':name submitted ":title"', ['name' => $student->full_name, 'title' => $assignment->title],
+            route('teacher.assignments.show', $assignment), 'inbox');
 
         return back()->with('success', __('Your work has been submitted.'));
     }

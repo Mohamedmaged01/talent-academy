@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Batch;
 use App\Models\Branch;
 use App\Models\Course;
 use App\Models\Student;
@@ -19,7 +20,7 @@ class StudentController extends Controller
 {
     public function index(Request $request): View|StreamedResponse
     {
-        $query = Student::with('branch')
+        $query = Student::with('branch')->forAdminBranch()
             ->search($request->query('q'))
             ->when($request->query('pathway'), fn ($q, $v) => $q->where('pathway', $v))
             ->when($request->query('status'), fn ($q, $v) => $q->where('status', $v))
@@ -77,7 +78,7 @@ class StudentController extends Controller
             'attendanceRate' => $student->attendanceRate(),
             'average' => $student->averageExamPercent(),
             'balance' => $student->outstandingBalance(),
-            'availableBatches' => \App\Models\Batch::with('course')->whereIn('status', ['upcoming', 'active'])
+            'availableBatches' => Batch::with('course')->whereIn('status', ['upcoming', 'active'])
                 ->whereNotIn('id', $student->batches->pluck('id'))->get(),
         ]);
     }

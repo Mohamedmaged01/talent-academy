@@ -17,6 +17,7 @@ class PaymentController extends Controller
     {
         return view('admin.payments.index', [
             'payments' => Payment::with(['student', 'invoice', 'receiver'])
+                ->when($request->user()->branchScope(), fn ($q, $b) => $q->whereHas('invoice', fn ($q) => $q->where('branch_id', $b)))
                 ->when($request->query('method'), fn ($q, $v) => $q->where('method', $v))
                 ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($q) => $q
                     ->where('receipt_number', 'like', "%{$term}%")

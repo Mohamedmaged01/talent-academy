@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Permissions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -18,9 +19,12 @@ class User extends Authenticatable
     public const ROLES = ['admin', 'teacher', 'student', 'parent'];
 
     protected $fillable = [
-        'branch_id', 'name', 'email', 'phone', 'role', 'avatar_path',
+        'branch_id', 'name', 'email', 'phone', 'role', 'admin_role_id', 'avatar_path',
         'locale', 'is_active', 'last_login_at', 'password',
     ];
+
+    /** Per-request cache of the effective administrator permissions. */
+    protected ?array $permissionCache = null;
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -62,6 +66,85 @@ class User extends Authenticatable
     public function taughtBatches(): HasMany
     {
         return $this->hasMany(Batch::class, 'teacher_id');
+    }
+
+    public function adminRole(): BelongsTo
+    {
+        return $this->belongsTo(AdminRole::class);
+    }
+
+    public function delegationsReceived(): HasMany
+    {
+        return $this->hasMany(PermissionDelegation::class, 'to_user_id');
+    }
+
+    public function messageThreads(): BelongsToMany
+    {
+        return $this->belongsToMany(MessageThread::class)->withPivot('last_read_message_id')->withTimestamps();
+    }
+
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
+    public function payrollRecords(): HasMany
+    {
+        return $this->hasMany(PayrollRecord::class);
+    }
+
+    /** An administrator without a role has every permission. */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'admin' && $this->admin_role_id === null;
+    }
+
+    /** Role permissions plus any delegation currently in force. */
+    public function adminPermissions(): array
+    {
+        if ($this->permissionCache !== null) {
+            return $this->permissionCache;
+        }
+
+        if ($this->role !== 'admin') {
+            return $this->permissionCache = [];
+        }
+
+        if ($this->isSuperAdmin()) {
+            return $this->permissionCache = Permissions::all();
+        }
+
+        $delegated = $this->delegationsReceived()->inForce()->pluck('permissions')->flatten()->all();
+
+        return $this->permissionCache = Permissions::clean(array_unique(array_merge($this->adminRole?->permissions ?? [], $delegated)));
+    }
+
+    public function canAdmin(string $module, string $action = 'view'): bool
+    {
+        return Permissions::allows($this->adminPermissions(), $module, $action);
+    }
+
+    public function flushPermissionCache(): void
+    {
+        $this->permissionCache = null;
+    }
+
+    /** Branch an administrator is limited to, or null when they see every branch. */
+    public function branchScope(): ?int
+    {
+        return $this->role === 'admin' && $this->branch_id && $this->adminRole?->branch_scoped
+            ? (int) $this->branch_id
+            : null;
+    }
+
+    /** Message threads with a message this user has not read yet. */
+    public function unreadThreadsCount(): int
+    {
+        return $this->messageThreads()
+            ->whereNotNull('message_threads.last_message_id')
+            ->where(fn ($q) => $q->whereNull('message_thread_user.last_read_message_id')
+                ->orWhereColumn('message_threads.last_message_id', '>', 'message_thread_user.last_read_message_id'))
+            ->count();
     }
 
     public function hasRole(string ...$roles): bool

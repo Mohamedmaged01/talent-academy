@@ -17,7 +17,7 @@ class FinanceController extends Controller
     {
         $from = Carbon::parse($request->query('from', now()->startOfMonth()->toDateString()))->startOfDay();
         $to = Carbon::parse($request->query('to', now()->toDateString()))->endOfDay();
-        $branchId = $request->query('branch');
+        $branchId = $request->user()->branchScope() ?? $request->query('branch');
 
         $payments = Payment::with('invoice')
             ->whereBetween('paid_at', [$from, $to])

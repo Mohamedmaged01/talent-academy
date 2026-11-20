@@ -1,5 +1,8 @@
 @include('partials.nav-item', ['route' => 'parent.dashboard', 'match' => ['parent.dashboard', 'parent.children.*'], 'icon' => 'house', 'label' => __('My Children')])
 @include('partials.nav-item', ['route' => 'parent.announcements', 'icon' => 'megaphone', 'label' => __('Announcements')])
+@include('partials.nav-item', ['route' => 'messages.index', 'match' => 'messages.*', 'icon' => 'mail', 'label' => __('Messages'), 'badge' => auth()->user()->unreadThreadsCount() ?: null])
+@include('partials.nav-item', ['route' => 'downloads.portal', 'icon' => 'download', 'label' => __('Downloads Center')])
+@include('partials.nav-item', ['route' => 'support.index', 'match' => 'support.*', 'icon' => 'life-buoy', 'label' => __('Help & Support')])
 
 <div class="mt-4 space-y-1">
     @foreach (auth()->user()->children()->orderBy('full_name')->get() as $child)

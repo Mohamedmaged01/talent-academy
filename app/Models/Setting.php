@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class Setting extends Model
 {
@@ -37,11 +38,40 @@ class Setting extends Model
         'director_name_en' => 'Prof. Hassan Hindi',
     ];
 
+    /**
+     * Website texts and images editable from "Site content". Empty values fall
+     * back to the built-in (translated) wording and the bundled images.
+     */
+    public const CONTENT_DEFAULTS = [
+        'hero_title_ar' => null, 'hero_title_en' => null,
+        'hero_tagline_ar' => null, 'hero_tagline_en' => null,
+        'hero_text_ar' => null, 'hero_text_en' => null,
+        'about_intro_ar' => null, 'about_intro_en' => null,
+        'notice_bar_ar' => null, 'notice_bar_en' => null,
+        'hero_image' => null, 'about_image' => null, 'pathway_academic_image' => null,
+        'pathway_training_image' => null, 'login_image' => null,
+    ];
+
+    /** Content keys that hold a media-library path. */
+    public const CONTENT_IMAGES = ['hero_image', 'about_image', 'pathway_academic_image', 'pathway_training_image', 'login_image'];
+
     public static function get(string $key, ?string $default = null): ?string
     {
         $all = Cache::rememberForever('settings.all', fn () => static::pluck('value', 'key')->all());
 
         return $all[$key] ?? $default ?? (self::DEFAULTS[$key] ?? null);
+    }
+
+    /** URL of a site image chosen in "Site content", or the bundled default. */
+    public static function image(string $key, string $fallback): string
+    {
+        $path = static::get($key);
+
+        if (! $path) {
+            return asset($fallback);
+        }
+
+        return str_starts_with($path, 'images/') || str_starts_with($path, 'http') ? asset($path) : Storage::url($path);
     }
 
     public static function put(array $values): void
